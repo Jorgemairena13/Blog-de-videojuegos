@@ -1,0 +1,10 @@
+<?php
+// Iniciar la sesion
+if(!isset($_SESSION)){
+    session_start();
+}
+
+if(!isset($_SESSION['usuario'])){
+    header('location: index.php');
+}
+?>
