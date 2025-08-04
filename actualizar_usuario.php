@@ -1,92 +1,79 @@
 <?php
+session_start(); // Asegúrate siempre de tener esto al principio
 
-
-if(isset($_POST)){
-
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Conexion con la base de datos
     require_once 'assets/includes/conexion.php';
-    
 
-    // Recoger valores del formulario de actualizacion
-    $nombre = isset($_POST['nombre']) ? mysqli_real_escape_string($db,$_POST['nombre']):false;
-    $apellido = isset($_POST['apellidos']) ? mysqli_real_escape_string($db,$_POST['apellidos']):false;
-    $email = isset($_POST['email']) ? mysqli_real_escape_string($db,trim($_POST['email'])) : false;
+    // Recoger valores del formulario de actualización
+    $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : false;
+    $apellido = isset($_POST['apellidos']) ? trim($_POST['apellidos']) : false;
+    $email = isset($_POST['email']) ? trim($_POST['email']) : false;
 
     // Array de errores
     $errores = array();
 
-    // Validar datos antes de guradarlos
-
-
-    // Validar el campo nombre
-    if(!empty($nombre) && !is_numeric($nombre) && !preg_match('/[0-9]/',$nombre)){
+    // Validaciones
+    if (!empty($nombre) && !is_numeric($nombre) && !preg_match('/[0-9]/', $nombre)) {
         $nombre_validate = true;
-    }else{
+    } else {
         $nombre_validate = false;
         $errores['nombre'] = 'El nombre no es valido';
-    } 
-    // Validar el campo apellido
-    if(!empty($apellido) && !is_numeric($apellido) && !preg_match('/[0-9]/',$apellido)){
+    }
+
+    if (!empty($apellido) && !is_numeric($apellido) && !preg_match('/[0-9]/', $apellido)) {
         $apellido_validate = true;
-    }else{
+    } else {
         $apellido_validate = false;
         $errores['apellidos'] = 'El apellido no es valido';
     }
 
-    // Validar el email
-    if(!empty($email) && filter_var($email,FILTER_VALIDATE_EMAIL)){
+    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $email_validate = true;
-    }else{
+    } else {
         $email_validate = false;
         $errores['email'] = 'El email no es valido';
     }
 
     $guardar_usuario = false;
-    if(count($errores) == 0){
-        // Insertar usuario en la base de datos
+    if (count($errores) == 0) {
         $guardar_usuario = true;
         $usuario = $_SESSION['usuario'];
 
-        // Comprobar si el email ya existe
-        $sql = "SELECT email FROM usuarios WHERE email = '$email';";
-        $existe_email = mysqli_query($db,$sql);
-        $existe_usuario = mysqli_fetch_assoc($existe_email);
-        if($existe_usuario['id'] == $usuario['id'] || empty($existe_usuario) ){
-            // Actualizar usuario en la tabla de usuarios de la bbdd
-            $usuario = $_SESSION['usuario'];
-            $sql = "UPDATE usuarios SET ". 
-            "nombre = '$nombre', " .
-            "apellidos = '$apellido', " . 
-            "email = '$email'" . 
-            "WHERE id = " . $usuario['id'] . ";" ;
+        // Comprobar si el email ya existe para otro usuario
+        $stmt_check = $db->prepare("SELECT id FROM usuarios WHERE email = ?");
+        $stmt_check->bind_param("s", $email);
+        $stmt_check->execute();
+        $resultado_check = $stmt_check->get_result();
+        $existe_usuario = $resultado_check->fetch_assoc();
+        $stmt_check->close();
 
+        if (empty($existe_usuario) || $existe_usuario['id'] == $usuario['id']) {
+            // Actualizar usuario en la tabla de usuarios
+            $stmt_update = $db->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, email = ? WHERE id = ?");
+            $stmt_update->bind_param("sssi", $nombre, $apellido, $email, $usuario['id']);
+            $guardar = $stmt_update->execute();
+            $stmt_update->close();
 
-            $guardar = mysqli_query($db,$sql);
-
-            if($guardar){
+            if ($guardar) {
                 $_SESSION['usuario']['nombre'] = $nombre;
                 $_SESSION['usuario']['apellidos'] = $apellido;
                 $_SESSION['usuario']['email'] = $email;
                 $_SESSION['completado'] = "Tus datos se han actualizado con exito";
-            }else{
+            } else {
                 $_SESSION['errores']['general'] = "Fallo al actualizar usuario";
+            }
+
+        } else {
+            $_SESSION['errores']['general'] = "El usuario ya existe";
         }
 
-        }else{
-             $_SESSION['errores']['general'] = "El usuario ya existe";
-        }
-
-        
-
-
-    }else{
-        // Redirigir al index
+    } else {
         $_SESSION['errores'] = $errores;
         header('location: index.php');
+        exit;
     }
-
-
 }
 
 header('location: mis_datos.php');
-?>
+exit;

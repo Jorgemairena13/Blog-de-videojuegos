@@ -23,21 +23,21 @@
         <form action="guardar_entrada.php?editar=<?=$entrada_actual['id']?>" method="post">
 
         <Label for="titulo">Titulo</Label>
-        <input type="text" name="titulo" value="<?=$entrada_actual['titulo']?>">
+        <input type="text" name="titulo" value="<?=htmlspecialchars($entrada_actual['titulo'])?>">
         <?php echo isset($_SESSION['errores_entrada']) ? mostrarError($_SESSION['errores_entrada'],'titulo'): ''?>
 
         <label for="descripcion">Descripcion</label>
-        <textarea name="descripcion"><?=$entrada_actual['descripcion']?></textarea>
+        <textarea name="descripcion"><?=htmlspecialchars($entrada_actual['descripcion'])?></textarea>
         <?php echo isset($_SESSION['errores_entrada']) ? mostrarError($_SESSION['errores_entrada'],'descripcion'): ''?>
 
         <label for="categoria">Categorias</label>
         <select name="categoria">
             <?php $categorias = conseguirCategorias($db);
                 if(!empty($categorias)):
-                while($categoria =mysqli_fetch_assoc($categorias)): 
+                while($categoria = mysqli_fetch_assoc($categorias)): 
             ?>
                 <option value="<?=$categoria['id']?>" <?= ($categoria['id'] == $entrada_actual['categoria_id']) ? 'selected="selected"' : '' ?>>
-                    <?=$categoria['nombre']?>
+                    <?=htmlspecialchars($categoria['nombre'])?>
                 </option>
 
             <?php
@@ -46,7 +46,7 @@
             ?>
 
         </select>
-        <?php echo isset($_SESSION['errores_entrada']) ? mostrarError($_SESSION['errores_entrada'],'categoria'): ''?>
+        <?php echo isset($_SESSION['errores_entrada']) ? htmlspecialchars(mostrarError($_SESSION['errores_entrada'],'categoria')): ''?>
 
         <input type="submit" value="Actualizar">
         </form>

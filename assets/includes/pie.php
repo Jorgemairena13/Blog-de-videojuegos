@@ -7,7 +7,7 @@
         </div> 
         
     </div>
-<!-- <script src="/master-php/proyecto-php/assets/js/efectos.js"></script> -->
+
 </body>
 </html>
         

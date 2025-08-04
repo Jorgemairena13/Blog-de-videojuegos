@@ -8,17 +8,17 @@
 <?php require_once 'assets/includes/lateral.php';?>
 
 <!-- Caja principal -->
-<div class="principal">
+<div id="principal">
     
     <h1>Mis datos</h1>
     <?php if(isset($_SESSION['completado'])) : ?>
-                    <div class="alerta alerta-exito">
+                    <div id="alerta alerta-exito">
                         <?= $_SESSION['completado'];?>
                     </div>
                     
                 <?php elseif(isset($_SESSION['errores']['general'])):?>
                     <div class="alerta alerta-error">
-                        <?=$_SESSION['errores']['general'];?>
+                        <?=htmlspecialchars($_SESSION['errores']['general']);?>
                     </div>
                 <?php endif;?>
                 

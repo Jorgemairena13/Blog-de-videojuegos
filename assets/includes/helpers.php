@@ -84,30 +84,69 @@ function conseguirEntradas($db, $limit = null, $categoria = null, $busqueda = nu
     return $entradas;
 }
 
-function conseguirCategoria($db,$id){
-    
-    $sql = "SELECT * FROM categorias WHERE id = $id;";
-    $categorias = mysqli_query($db,$sql);
-    $resul = array();
-    if($categorias && mysqli_num_rows($categorias) >= 1 ){
-        $resul = mysqli_fetch_assoc($categorias);
-    }
-    return $resul;
+function conseguirCategoria($db, $id) {
+    $resul = [];
 
+    // Validar que $id sea un número entero
+    if (!filter_var($id, FILTER_VALIDATE_INT)) {
+        return $resul;
+    }
+
+    // Preparar la consulta
+    $stmt = $db->prepare("SELECT * FROM categorias WHERE id = ?");
+    if ($stmt) {
+        // Vincular el parámetro
+        $stmt->bind_param("i", $id); // "i" indica que es un entero
+
+        // Ejecutar la consulta
+        $stmt->execute();
+
+        // Obtener resultados
+        $resultado = $stmt->get_result();
+        if ($resultado && $resultado->num_rows >= 1) {
+            $resul = $resultado->fetch_assoc();
+        }
+
+        $stmt->close();
+    }
+
+    return $resul;
 }
 
-function conseguirEntrada($db,$id_entrada){
-    $sql = "SELECT e.*, c.nombre as categoria, CONCAT(u.nombre,' ',u.apellidos) as usuario FROM entradas e ".
-    "INNER JOIN categorias c ON e.categoria_id = c.id " . 
-    "INNER JOIN usuarios u ON e.usuario_id = u.id " . 
-    "WHERE e.id = $id_entrada";
-    $entrada = mysqli_query($db,$sql);
 
-    $resultado = array();
+function conseguirEntrada($db, $id_entrada) {
+    $resultado = [];
 
-    if($entrada && mysqli_num_rows($entrada) >= 1){
-        $resultado = mysqli_fetch_assoc($entrada);
+    // Validar que sea un número entero
+    if (!filter_var($id_entrada, FILTER_VALIDATE_INT)) {
+        return $resultado;
     }
+
+    // Preparar la consulta
+    $sql = "SELECT e.*, c.nombre AS categoria, CONCAT(u.nombre, ' ', u.apellidos) AS usuario 
+            FROM entradas e 
+            INNER JOIN categorias c ON e.categoria_id = c.id 
+            INNER JOIN usuarios u ON e.usuario_id = u.id 
+            WHERE e.id = ?";
+
+    $stmt = $db->prepare($sql);
+
+    if ($stmt) {
+        // Asociar parámetro
+        $stmt->bind_param("i", $id_entrada);
+
+        // Ejecutar
+        $stmt->execute();
+
+        // Obtener resultado
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows >= 1) {
+            $resultado = $res->fetch_assoc();
+        }
+
+        $stmt->close();
+    }
+
     return $resultado;
 }
 
