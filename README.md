@@ -18,7 +18,7 @@ Blog de Videojuegos es una plataforma web desarrollada en PHP que permite a los 
 - MySQL
 - HTML5
 - CSS3 (con variables CSS para personalización)
-- JavaScript
+
 
 ## Estructura de la base de datos
 
